@@ -1,0 +1,22 @@
+{
+    "configs": [
+        {
+            "source_ip": "12.12.12.12",
+            "dest_ip": "localhost",
+            "dest_port": 3000,
+            "dest_mac": "54:a0:50:8b:2f:86"
+        },
+        {
+            "source_ip": "12.12.12.11",
+            "dest_ip": "localhost",
+            "dest_port": 3001,
+            "dest_mac": "54:a0:50:8b:2f:86"
+        },
+        {
+            "source_ip": "12.12.12.18",
+            "dest_ip": "localhost",
+            "dest_port": 3002,
+            "dest_mac": "54:a0:50:8b:2f:86"
+        }
+    ]
+}
