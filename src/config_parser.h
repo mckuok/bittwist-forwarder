@@ -186,6 +186,11 @@ static int _parse_config(FILE *fd, struct resolved_packet_config **configs)
                 char dst_mac[18];
                 int dst_port;
 
+                memset(src_ip, 0, sizeof(char) * 36);
+                memset(dst_ip, 0, sizeof(char) * 36);
+                memset(dst_mac, 0, sizeof(char) * 18);
+                dst_port = 0;
+
                 for (k = 1; k < g->size * 2; k++)
                 {
                     if (jsoneq(file_content, &g[k], SRC_IP_KEY) == 0)
@@ -195,7 +200,6 @@ static int _parse_config(FILE *fd, struct resolved_packet_config **configs)
                                file_content + g[k + 1].start);
 
                         strncpy(src_ip, file_content + g[k + 1].start, g[k + 1].end - g[k + 1].start);
-                        src_ip[g[k + 1].end - g[k + 1].start] = 0;
 
                         k++;
                     }
@@ -206,7 +210,6 @@ static int _parse_config(FILE *fd, struct resolved_packet_config **configs)
                                file_content + g[k + 1].start);
 
                         strncpy(dst_ip, file_content + g[k + 1].start, g[k + 1].end - g[k + 1].start);
-                        dst_ip[g[k + 1].end - g[k + 1].start] = 0;
 
                         k++;
                     }
@@ -217,7 +220,6 @@ static int _parse_config(FILE *fd, struct resolved_packet_config **configs)
                                file_content + g[k + 1].start);
 
                         strncpy(dst_mac, file_content + g[k + 1].start, g[k + 1].end - g[k + 1].start);
-                        dst_mac[g[k + 1].end - g[k + 1].start] = 0;
 
                         k++;
                     }
@@ -236,7 +238,7 @@ static int _parse_config(FILE *fd, struct resolved_packet_config **configs)
                     }
                     else
                     {
-                        printf("Unexpected key1: %.*s\n", g[k].end - g[k].start,
+                        printf("Unexpected key: %.*s\n", g[k].end - g[k].start,
                                file_content + g[k].start);
                     }
                 }

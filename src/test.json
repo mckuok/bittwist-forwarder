@@ -1,22 +1,22 @@
 {
     "configs": [
         {
-            "source_ip": "12.12.12.12",
-            "dest_ip": "localhost",
-            "dest_port": 3000,
-            "dest_mac": "54:a0:50:8b:2f:86"
+            "source_ip": "8.8.8.8",
+            "dest_ip": "10.2.101.192",
+            "dest_port": 2055,
+            "dest_mac": "04:D4:C4:57:F8:B4"
         },
         {
-            "source_ip": "12.12.12.11",
-            "dest_ip": "localhost",
-            "dest_port": 3001,
-            "dest_mac": "54:a0:50:8b:2f:86"
+            "source_ip": "8.8.8.8",
+            "dest_ip": "10.2.101.192",
+            "dest_port": 2056,
+            "dest_mac": "04:D4:C4:57:F8:B4"
         },
         {
-            "source_ip": "12.12.12.18",
-            "dest_ip": "localhost",
-            "dest_port": 3002,
-            "dest_mac": "54:a0:50:8b:2f:86"
+            "source_ip": "8.8.8.8",
+            "dest_ip": "10.2.101.192",
+            "dest_port": 2057,
+            "dest_mac": "04:D4:C4:57:F8:B4"
         }
     ]
 }

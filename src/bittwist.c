@@ -64,7 +64,8 @@ void ethernet_header(unsigned char *buffer, int buflen, const struct resolved_pa
 {
     struct ethhdr *eth = (struct ethhdr *)(buffer);
 
-    memcpy(eth->h_dest, resolved_config->dst_mac, ETHER_ADDR_LEN);
+    if (resolved_config && resolved_config->dst_mac)
+        memcpy(eth->h_dest, resolved_config->dst_mac, ETHER_ADDR_LEN);
 
     if (vflag == 2)
     {
@@ -82,8 +83,11 @@ void ip_header(unsigned char *buffer, int buflen, const struct resolved_packet_c
 
     iphdrlen = ip->ihl * 4;
 
-    ip->saddr = resolved_config->src_ip;
-    ip->daddr = resolved_config->dst_ip;
+    if (resolved_config && resolved_config->src_ip)
+        ip->saddr = resolved_config->src_ip;
+
+    if (resolved_config && resolved_config->dst_ip)
+        ip->daddr = resolved_config->dst_ip;
 
     if (vflag == 2)
     {
@@ -127,7 +131,9 @@ void tcp_header(unsigned char *buffer, int buflen, const struct resolved_packet_
     ip_header(buffer, buflen, resolved_config);
 
     struct tcphdr *tcp = (struct tcphdr *)(buffer + iphdrlen + sizeof(struct ethhdr));
-    tcp->dest = resolved_config->dst_port;
+
+    if (resolved_config && resolved_config->dst_port)
+        tcp->dest = resolved_config->dst_port;
 
     if (vflag == 2)
     {
@@ -162,7 +168,8 @@ void udp_header(unsigned char *buffer, int buflen, const struct resolved_packet_
     ip_header(buffer, buflen, resolved_config);
 
     struct udphdr *udp = (struct udphdr *)(buffer + iphdrlen + sizeof(struct ethhdr));
-    udp->dest = resolved_config->dst_port;
+    if (resolved_config && resolved_config->dst_port)
+        udp->dest = resolved_config->dst_port;
 
     if (vflag == 2)
     {
@@ -214,10 +221,10 @@ int main(int argc, char **argv)
     char *device = NULL;
     int loop = 1;
     thiszone = gmt2local(0);
-    char *config_file;
-    size_t config_file_length;
-    struct resolved_packet_config *configs;
-    int config_count;
+    char *config_file = NULL;
+    size_t config_file_length = 0;
+    struct resolved_packet_config *configs = NULL;
+    int config_count = 0;
 
 
     if ((cp = strrchr(argv[0], '/')) != NULL)
@@ -340,16 +347,13 @@ int main(int argc, char **argv)
         error("malloc(): cannot allocate memory for pkt_data");
     memset(pkt_data, 0, ETHER_MAX_LEN);
 
-    if (vflag) {
+    if (vflag && config_file) {
         printf("reading config from %s\n", config_file);
     }
-    config_count = parse_config(config_file, &configs);
-    free(config_file);
 
-    if (config_count == 0)
-    {
-        printf("No config provided\n");
-        return 0;
+    if (config_file) {
+        config_count = parse_config(config_file, &configs);
+        free(config_file);
     }
 
     /* set signal handler for SIGINT (Control-C) */
@@ -357,7 +361,7 @@ int main(int argc, char **argv)
 
     if (gettimeofday(&start, NULL) == -1)
         notice("gettimeofday(): %s", strerror(errno));
-        
+
 
     if (loop > 0)
     {
@@ -503,9 +507,38 @@ void send_packets(char *device, char *trace_file, struct resolved_packet_config 
 
         (void)sigprocmask(SIG_BLOCK, &block_sig, NULL); /* hold SIGINT */
 
+        if (config_count > 0) {
         for (config_i = 0; config_i < config_count; config_i++)
         {
             data_process(pkt_data, pkt_len, &configs[config_i]);
+
+            /* finish the injection and verbose output before we give way to SIGINT */
+            if (pcap_sendpacket(pd, pkt_data, pkt_len) == -1)
+            {
+                notice("%s", pcap_geterr(pd));
+                ++failed;
+            }
+            else
+            {
+                ++pkts_sent;
+                bytes_sent += pkt_len;
+
+                /* copy timestamp for previous packet sent */
+                memcpy(&prev_ts, &cur_ts, sizeof(struct timeval));
+
+                /* verbose output */
+                if (vflag)
+                {
+                    if (gettimeofday(&ts, NULL) == -1)
+                        notice("gettimeofday(): %s", strerror(errno));
+                    else
+                        ts_print(&ts);
+                }
+            }
+        }
+        }
+        else {
+            data_process(pkt_data, pkt_len, NULL);
 
             /* finish the injection and verbose output before we give way to SIGINT */
             if (pcap_sendpacket(pd, pkt_data, pkt_len) == -1)
